@@ -1,100 +1,45 @@
 require('dotenv').config();
 const express = require('express');
-const mysql = require('mysql2');
+const cors = require('cors');
+const cloudinary = require('cloudinary').v2;
 
 const app = express();
+
+//  Configuración Cloudinary 
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key:    process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+//Middlewares globales
+app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// 🔹 Conexión a MySQL (Railway)
-const conexion = mysql.createConnection({
-    host: 'shinkansen.proxy.rlwy.net',
-    user: 'root',
-    password: 'soZPXuPxaHjWseTPgtwAmUFCyezEvJVm',
-    port: 38464,
-    database: 'railway', // ⚠️ cambia si tu DB tiene otro nombre
-    ssl: {
-        rejectUnauthorized: false
-    }
-});
+//  Rutas 
+app.use('/auth',           require('./routes/authRoutes'));
+app.use('/usuarios',       require('./routes/usuarioRoutes'));
+app.use('/profesores',     require('./routes/profesorRoutes'));
+app.use('/cursos',         require('./routes/cursoRoutes'));
+app.use('/videos',         require('./routes/videoRoutes'));
+app.use('/progreso',       require('./routes/progresoRoutes'));
+app.use('/calificaciones', require('./routes/calificacionRoutes'));
+app.use('/certificados',   require('./routes/certificadoRoutes'));
+app.use('/reportes',       require('./routes/reporteRoutes'));
 
-// 🔹 Probar conexión
-conexion.connect((err) => {
-    if (err) {
-        console.error('❌ Error de conexión:', err);
-        return;
-    }
-    console.log('✅ Conectado a MySQL (Railway)');
-});
-
-// 🔹 Ruta raíz
+//  Health check    
 app.get('/', (req, res) => {
-    res.send('🚀 API funcionando correctamente');
+    res.json({ status: 'OK', mensaje: '🚀 API corriendo correctamente' });
 });
 
-// 🔹 Obtener usuarios
-app.get('/usuarios', (req, res) => {
-    conexion.query('SELECT * FROM usuarios', (err, results) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ error: 'Error al obtener usuarios' });
-        }
-        res.json(results);
-    });
+//  Manejo de rutas no encontradas 
+app.use((req, res) => {
+    res.status(404).json({ error: 'Ruta no encontrada' });
 });
 
-// 🔹 Crear usuario
-app.post('/usuario', (req, res) => {
-    const { nombre_completo, correo, password, rol } = req.body;
-
-    const sql = `
-        INSERT INTO usuarios (nombre_completo, correo, password, rol)
-        VALUES (?, ?, ?, ?)
-    `;
-
-    conexion.query(sql, [nombre_completo, correo, password, rol], (err, result) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ error: 'Error al crear usuario' });
-        }
-        res.json({ mensaje: 'Usuario creado', id: result.insertId });
-    });
-});
-
-// 🔹 Actualizar usuario
-app.put('/usuarios/:id', (req, res) => {
-    const { id } = req.params;
-    const { nombre_completo, correo, password, rol } = req.body;
-
-    const sql = `
-        UPDATE usuarios 
-        SET nombre_completo=?, correo=?, password=?, rol=? 
-        WHERE id=?
-    `;
-
-    conexion.query(sql, [nombre_completo, correo, password, rol, id], (err) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ error: 'Error al actualizar usuario' });
-        }
-        res.json({ mensaje: 'Usuario actualizado' });
-    });
-});
-
-// 🔹 Eliminar usuario
-app.delete('/usuarios/:id', (req, res) => {
-    const { id } = req.params;
-
-    conexion.query('DELETE FROM usuarios WHERE id=?', [id], (err) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ error: 'Error al eliminar usuario' });
-        }
-        res.json({ mensaje: 'Usuario eliminado' });
-    });
-});
-
-// 🔹 Puerto
-const PORT = 3000;
+//  Arrancar servidor   
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`🔥 Servidor corriendo en http://localhost:${PORT}`);
+    console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
