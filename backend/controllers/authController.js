@@ -1,5 +1,6 @@
 const conexion = require('../config/db');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 // POST /auth/register
 exports.register = async (req, res) => {
@@ -10,22 +11,33 @@ exports.register = async (req, res) => {
     }
 
     try {
-        conexion.query('SELECT id FROM usuarios WHERE correo = ?', [correo], async (err, result) => {
-            if (err) return res.status(500).json({ error: err.message });
-            if (result.length > 0) return res.status(409).json({ error: 'El correo ya está registrado' });
-
-            const hash = await bcrypt.hash(password, 10);
-
-            const sql = `
-                INSERT INTO usuarios (nombre_completo, correo, password, rol)
-                VALUES (?, ?, ?, 'USUARIO')
-            `;
-
-            conexion.query(sql, [nombre_completo, correo, hash], (err, result) => {
+        conexion.query(
+            'SELECT id FROM usuarios WHERE correo = ?',
+            [correo],
+            async (err, result) => {
                 if (err) return res.status(500).json({ error: err.message });
-                res.status(201).json({ mensaje: 'Usuario registrado correctamente', id: result.insertId });
-            });
-        });
+
+                if (result.length > 0) {
+                    return res.status(409).json({ error: 'El correo ya está registrado' });
+                }
+
+                const hash = await bcrypt.hash(password, 10);
+
+                const sql = `
+                    INSERT INTO usuarios (nombre_completo, correo, password, rol)
+                    VALUES (?, ?, ?, 'USUARIO')
+                `;
+
+                conexion.query(sql, [nombre_completo, correo, hash], (err, result) => {
+                    if (err) return res.status(500).json({ error: err.message });
+
+                    res.status(201).json({
+                        mensaje: 'Usuario registrado correctamente',
+                        id: result.insertId
+                    });
+                });
+            }
+        );
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -39,32 +51,48 @@ exports.login = async (req, res) => {
         return res.status(400).json({ error: 'Correo y contraseña requeridos' });
     }
 
-    conexion.query('SELECT * FROM usuarios WHERE correo = ?', [correo], async (err, result) => {
-        if (err) return res.status(500).json({ error: err.message });
-        if (result.length === 0) return res.status(401).json({ error: 'Credenciales incorrectas' });
+    conexion.query(
+        'SELECT * FROM usuarios WHERE correo = ?',
+        [correo],
+        async (err, result) => {
+            if (err) return res.status(500).json({ error: err.message });
 
-        const usuario = result[0];
+            if (result.length === 0) {
+                return res.status(401).json({ error: 'Credenciales incorrectas' });
+            }
 
-        try {
-            const passwordValido = await bcrypt.compare(password, usuario.password);
-            if (!passwordValido) return res.status(401).json({ error: 'Credenciales incorrectas' });
+            const usuario = result[0];
 
-const token = jwt.sign(
-    { id: usuario.id, correo: usuario.correo, rol: usuario.rol },
-    process.env.JWT_SECRET,
-    { expiresIn: '8h' }
-);
+            try {
+                const passwordValido = await bcrypt.compare(password, usuario.password);
 
-const { password: _, ...usuarioSinPassword } = usuario;
+                if (!passwordValido) {
+                    return res.status(401).json({ error: 'Credenciales incorrectas' });
+                }
 
-res.json({
-    mensaje: 'Login exitoso',
-    token,
-    usuario: usuarioSinPassword
-});
+                // 🔥 GENERAR TOKEN
+                const token = jwt.sign(
+                    {
+                        id: usuario.id,
+                        correo: usuario.correo,
+                        rol: usuario.rol
+                    },
+                    process.env.JWT_SECRET,
+                    { expiresIn: '8h' }
+                );
 
-        } catch (err) {
-            res.status(500).json({ error: err.message });
+                // 🔒 quitar password del response
+                const { password: _, ...usuarioSinPassword } = usuario;
+
+                res.json({
+                    mensaje: 'Login exitoso',
+                    token,
+                    usuario: usuarioSinPassword
+                });
+
+            } catch (err) {
+                res.status(500).json({ error: err.message });
+            }
         }
-    });
+    );
 };
