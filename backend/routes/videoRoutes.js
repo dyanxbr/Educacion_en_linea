@@ -2,22 +2,26 @@ const router = require('express').Router();
 const auth = require('../middlewares/authMiddleware');
 const rol = require('../middlewares/rolMiddleware');
 const {
-    agregarVideo,
-    obtenerVideosPorCurso,
-    actualizarVideo,
-    eliminarVideo
-} = require('../controllers/videoController');
+    crearCurso,
+    obtenerCursos,
+    obtenerCurso,
+    actualizarCurso,
+    eliminarCurso
+} = require('../controllers/cursoController');
 
-// GET /videos/curso/:curso_id  — cualquier autenticado
-router.get('/curso/:curso_id', auth, obtenerVideosPorCurso);
+// GET /cursos  — cualquier autenticado
+router.get('/', auth, obtenerCursos);
 
-// POST /videos  — solo ADMIN
-router.post('/', auth, rol('ADMIN'), agregarVideo);
+// GET /cursos/:id
+router.get('/:id', auth, obtenerCurso);
 
-// PUT /videos/:id  — solo ADMIN
-router.put('/:id', auth, rol('ADMIN'), actualizarVideo);
+// POST /cursos  — solo ADMIN
+router.post('/', auth, rol('ADMIN'), crearCurso);
 
-// DELETE /videos/:id  — solo ADMIN
-router.delete('/:id', auth, rol('ADMIN'), eliminarVideo);
+// PUT /cursos/:id  — solo ADMIN
+router.put('/:id', auth, rol('ADMIN'), actualizarCurso);
+
+// DELETE /cursos/:id  — solo ADMIN
+router.delete('/:id', auth, rol('ADMIN'), eliminarCurso);
 
 module.exports = router;
