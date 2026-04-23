@@ -1,10 +1,9 @@
 const router = require('express').Router();
-const { register, login } = require('../controllers/authController');
+const auth = require('../middlewares/authMiddleware');
+const { register, login, logout } = require('../controllers/authController');
 
-// POST /auth/register
 router.post('/register', register);
-
-// POST /auth/login
 router.post('/login', login);
+router.post('/logout', auth, logout);  // ✅ nueva ruta
 
 module.exports = router;

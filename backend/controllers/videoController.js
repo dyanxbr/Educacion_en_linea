@@ -1,26 +1,61 @@
 const conexion = require('../config/db');
 
-// POST /videos  (solo ADMIN)
-exports.agregarVideo = (req, res) => {
-    const { curso_id, titulo, url_video, orden } = req.body;
+// POST /calificaciones
+exports.calificar = (req, res) => {
+    const { usuario_id, curso_id, puntuacion, comentario } = req.body;
 
-    if (!curso_id || !titulo || !url_video || orden == null) {
-        return res.status(400).json({ error: 'curso_id, titulo, url_video y orden son obligatorios' });
+    if (!usuario_id || !curso_id || !puntuacion || !comentario) {
+        return res.status(400).json({ error: 'usuario_id, curso_id, puntuacion y comentario son obligatorios' });
     }
 
-    const sql = `INSERT INTO videos (curso_id, titulo, url_video, orden) VALUES (?, ?, ?, ?)`;
+    if (puntuacion < 1 || puntuacion > 5) {
+        return res.status(400).json({ error: 'La puntuación debe ser entre 1 y 5' });
+    }
 
-    conexion.query(sql, [curso_id, titulo, url_video, orden], (err, result) => {
+    const sqlCompletado = `
+        SELECT
+            COUNT(v.id) AS total,
+            SUM(CASE WHEN p.visto = TRUE THEN 1 ELSE 0 END) AS vistos
+        FROM videos v
+        LEFT JOIN progreso p ON p.video_id = v.id AND p.usuario_id = ?
+        WHERE v.curso_id = ?
+    `;
+
+    conexion.query(sqlCompletado, [usuario_id, curso_id], (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
-        res.status(201).json({ mensaje: 'Video agregado', id: result.insertId });
+
+        const { total, vistos } = result[0];
+
+        if (total === 0) return res.status(400).json({ error: 'El curso no tiene videos' });
+
+        if (parseInt(vistos) < parseInt(total)) {
+            return res.status(403).json({ error: `Debes completar todos los videos antes de calificar. Llevas ${vistos}/${total}` });
+        }
+
+        const sql = `INSERT INTO calificaciones (usuario_id, curso_id, puntuacion, comentario) VALUES (?, ?, ?, ?)`;
+
+        conexion.query(sql, [usuario_id, curso_id, puntuacion, comentario], (err, result) => {
+            if (err) {
+                if (err.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'Ya calificaste este curso' });
+                return res.status(500).json({ error: err.message });
+            }
+            res.status(201).json({ mensaje: 'Curso calificado correctamente', id: result.insertId });
+        });
     });
 };
 
-// GET /videos/curso/:curso_id  (videos en orden secuencial)
-exports.obtenerVideosPorCurso = (req, res) => {
+// GET /calificaciones/curso/:curso_id
+exports.obtenerCalificacionesCurso = (req, res) => {
     const { curso_id } = req.params;
 
-    const sql = `SELECT * FROM videos WHERE curso_id = ? ORDER BY orden ASC`;
+    const sql = `
+        SELECT cal.id, cal.puntuacion, cal.comentario, cal.fecha,
+               u.nombre_completo, u.imagen_url
+        FROM calificaciones cal
+        JOIN usuarios u ON cal.usuario_id = u.id
+        WHERE cal.curso_id = ?
+        ORDER BY cal.fecha DESC
+    `;
 
     conexion.query(sql, [curso_id], (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -28,24 +63,19 @@ exports.obtenerVideosPorCurso = (req, res) => {
     });
 };
 
-// PUT /videos/:id  (solo ADMIN)
-exports.actualizarVideo = (req, res) => {
-    const { titulo, url_video, orden } = req.body;
+// GET /calificaciones/admin
+exports.obtenerTodasCalificaciones = (req, res) => {
+    const sql = `
+        SELECT cal.id, cal.puntuacion, cal.comentario, cal.fecha,
+               u.nombre_completo AS usuario, c.nombre AS curso
+        FROM calificaciones cal
+        JOIN usuarios u ON cal.usuario_id = u.id
+        JOIN cursos c ON cal.curso_id = c.id
+        ORDER BY cal.fecha DESC
+    `;
 
-    const sql = `UPDATE videos SET titulo = ?, url_video = ?, orden = ? WHERE id = ?`;
-
-    conexion.query(sql, [titulo, url_video, orden, req.params.id], (err, result) => {
+    conexion.query(sql, (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
-        if (result.affectedRows === 0) return res.status(404).json({ error: 'Video no encontrado' });
-        res.json({ mensaje: 'Video actualizado' });
-    });
-};
-
-// DELETE /videos/:id  (solo ADMIN)
-exports.eliminarVideo = (req, res) => {
-    conexion.query('DELETE FROM videos WHERE id = ?', [req.params.id], (err, result) => {
-        if (err) return res.status(500).json({ error: err.message });
-        if (result.affectedRows === 0) return res.status(404).json({ error: 'Video no encontrado' });
-        res.json({ mensaje: 'Video eliminado' });
+        res.json(results);
     });
 };

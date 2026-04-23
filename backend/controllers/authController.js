@@ -30,8 +30,6 @@ exports.register = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
-
-// POST /auth/login
 exports.login = async (req, res) => {
     const { correo, password } = req.body;
 
@@ -49,22 +47,28 @@ exports.login = async (req, res) => {
             const passwordValido = await bcrypt.compare(password, usuario.password);
             if (!passwordValido) return res.status(401).json({ error: 'Credenciales incorrectas' });
 
-const token = jwt.sign(
-    { id: usuario.id, correo: usuario.correo, rol: usuario.rol },
-    process.env.JWT_SECRET,
-    { expiresIn: '8h' }
-);
+            const token = jwt.sign(
+                { id: usuario.id, correo: usuario.correo, rol: usuario.rol },
+                process.env.JWT_SECRET,
+                { expiresIn: '8h' }
+            );
 
-const { password: _, ...usuarioSinPassword } = usuario;
+            // ✅ Guardar token en la BD
+            conexion.query('UPDATE usuarios SET token = ? WHERE id = ?', [token, usuario.id]);
 
-res.json({
-    mensaje: 'Login exitoso',
-    token,
-    usuario: usuarioSinPassword
-});
+            const { password: _, ...usuarioSinPassword } = usuario;
+            res.json({ token, usuario: usuarioSinPassword });
 
         } catch (err) {
             res.status(500).json({ error: err.message });
         }
+    });
+};
+
+// ✅ Agregar logout para limpiar el token
+exports.logout = (req, res) => {
+    conexion.query('UPDATE usuarios SET token = NULL WHERE id = ?', [req.usuario.id], (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ mensaje: 'Sesión cerrada correctamente' });
     });
 };
