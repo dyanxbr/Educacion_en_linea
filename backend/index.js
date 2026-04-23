@@ -12,8 +12,29 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
+// ── CONFIGURACIÓN CORS (🔥 IMPORTANTE) ──────────────────────────────────────
+const allowedOrigins = [
+    'http://localhost:3001', // tu frontend local
+    'http://localhost:3000', // por si usas otro puerto
+    // 'https://tu-frontend.vercel.app' // producción (opcional)
+];
+
+app.use(cors({
+    origin: function (origin, callback) {
+        if (!origin) return callback(null, true); // permitir Postman o server-to-server
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        } else {
+            return callback(new Error('No permitido por CORS'));
+        }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+}));
+
+app.options('*', cors()); // 🔥 importante para preflight
+
 // ── Middlewares globales ────────────────────────────────────────────────────
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -30,6 +51,14 @@ app.use('/reportes',       require('./routes/reporteRoutes'));
 // ── Health check ────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
     res.json({ status: 'OK', mensaje: '🚀 API corriendo correctamente' });
+});
+
+// ── Manejo de errores CORS ──────────────────────────────────────────────────
+app.use((err, req, res, next) => {
+    if (err.message === 'No permitido por CORS') {
+        return res.status(403).json({ error: err.message });
+    }
+    next(err);
 });
 
 // ── Manejo de rutas no encontradas ──────────────────────────────────────────

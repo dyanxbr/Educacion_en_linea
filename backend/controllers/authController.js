@@ -49,8 +49,19 @@ exports.login = async (req, res) => {
             const passwordValido = await bcrypt.compare(password, usuario.password);
             if (!passwordValido) return res.status(401).json({ error: 'Credenciales incorrectas' });
 
-            const { password: _, ...usuarioSinPassword } = usuario;
-            res.json({ mensaje: 'Login exitoso', usuario: usuarioSinPassword });
+const token = jwt.sign(
+    { id: usuario.id, correo: usuario.correo, rol: usuario.rol },
+    process.env.JWT_SECRET,
+    { expiresIn: '8h' }
+);
+
+const { password: _, ...usuarioSinPassword } = usuario;
+
+res.json({
+    mensaje: 'Login exitoso',
+    token,
+    usuario: usuarioSinPassword
+});
 
         } catch (err) {
             res.status(500).json({ error: err.message });
