@@ -11,12 +11,10 @@ exports.register = async (req, res) => {
     }
 
     try {
-        // Verificar si el correo ya existe
         conexion.query('SELECT id FROM usuarios WHERE correo = ?', [correo], async (err, result) => {
             if (err) return res.status(500).json({ error: err.message });
             if (result.length > 0) return res.status(409).json({ error: 'El correo ya está registrado' });
 
-            // Encriptar contraseña
             const hash = await bcrypt.hash(password, 10);
 
             const sql = `
@@ -42,9 +40,7 @@ exports.login = async (req, res) => {
         return res.status(400).json({ error: 'Correo y contraseña requeridos' });
     }
 
-    const sql = `SELECT * FROM usuarios WHERE correo = ?`;
-
-    conexion.query(sql, [correo], async (err, result) => {
+    conexion.query('SELECT * FROM usuarios WHERE correo = ?', [correo], async (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
         if (result.length === 0) return res.status(401).json({ error: 'Credenciales incorrectas' });
 
@@ -54,17 +50,15 @@ exports.login = async (req, res) => {
             const passwordValido = await bcrypt.compare(password, usuario.password);
             if (!passwordValido) return res.status(401).json({ error: 'Credenciales incorrectas' });
 
-            // Generar token JWT
             const token = jwt.sign(
                 { id: usuario.id, correo: usuario.correo, rol: usuario.rol },
                 process.env.JWT_SECRET,
                 { expiresIn: '8h' }
             );
 
-            // No enviar la contraseña en la respuesta
             const { password: _, ...usuarioSinPassword } = usuario;
-
             res.json({ token, usuario: usuarioSinPassword });
+
         } catch (err) {
             res.status(500).json({ error: err.message });
         }
