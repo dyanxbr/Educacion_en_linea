@@ -1,14 +1,10 @@
 const router = require('express').Router();
+
 const {
-    agregarVideo,
-    obtenerVideosPorCurso,
-    actualizarVideo,
-    eliminarVideo
+    obtenerVideos
 } = require('../controllers/videoController');
 
-router.get('/curso/:curso_id', obtenerVideosPorCurso);
-router.post('/', agregarVideo);
-router.put('/:id', actualizarVideo);
-router.delete('/:id', eliminarVideo);
+// GET /videos/1
+router.get('/:curso_id', obtenerVideos);
 
 module.exports = router;
