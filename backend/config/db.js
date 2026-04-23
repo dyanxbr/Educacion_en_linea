@@ -7,7 +7,6 @@ const conexion = mysql.createConnection({
     port:     38464,
     database: 'railway',
     ssl:      { rejectUnauthorized: false },
-    protocol: 'TCP'
 });
 
 conexion.connect((err) => {
