@@ -1,6 +1,4 @@
 const router = require('express').Router();
-const auth = require('../middlewares/authMiddleware');
-const rol = require('../middlewares/rolMiddleware');
 const multer = require('multer');
 const {
     obtenerPerfil,
@@ -12,19 +10,19 @@ const {
 
 const upload = multer({ dest: 'uploads/' });
 
-// GET /usuarios/perfil  — usuario autenticado
-router.get('/perfil', auth, obtenerPerfil);
+// GET /usuarios/perfil?usuario_id=1
+router.get('/perfil', obtenerPerfil);
 
 // PUT /usuarios/cambiar-password
-router.put('/cambiar-password', auth, cambiarPassword);
+router.put('/cambiar-password', cambiarPassword);
 
 // PUT /usuarios/tema
-router.put('/tema', auth, cambiarTema);
+router.put('/tema', cambiarTema);
 
-// PUT /usuarios/imagen  — con imagen adjunta
-router.put('/imagen', auth, upload.single('imagen'), actualizarImagen);
+// PUT /usuarios/imagen
+router.put('/imagen', upload.single('imagen'), actualizarImagen);
 
-// GET /usuarios  — solo ADMIN
-router.get('/', auth, rol('ADMIN'), obtenerTodos);
+// GET /usuarios
+router.get('/', obtenerTodos);
 
 module.exports = router;

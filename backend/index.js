@@ -25,7 +25,6 @@ app.use('/cursos',         require('./routes/cursoRoutes'));
 app.use('/videos',         require('./routes/videoRoutes'));
 app.use('/progreso',       require('./routes/progresoRoutes'));
 app.use('/calificaciones', require('./routes/calificacionRoutes'));
-app.use('/certificados',   require('./routes/certificadoRoutes'));
 app.use('/reportes',       require('./routes/reporteRoutes'));
 
 // ── Health check ────────────────────────────────────────────────────────────
@@ -38,7 +37,8 @@ app.use((req, res) => {
     res.status(404).json({ error: 'Ruta no encontrada' });
 });
 
+// ── Arrancar servidor ───────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
+    console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
