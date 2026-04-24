@@ -1,25 +1,27 @@
-const router = require('express').Router();
+const express = require('express');
+const router = express.Router();
 const multer = require('multer');
+const usuarioController = require('../controllers/usuarioController');
 
-// 🔥 SOLO UNA DEFINICIÓN (CORRECTA PARA RAILWAY)
-const upload = multer({ storage: multer.memoryStorage() });
+// Configurar multer para usar memoria (sin necesidad de carpeta uploads)
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
-const {
-    obtenerPerfil,
-    cambiarPassword,
-    cambiarTema,
-    actualizarImagen,
-    obtenerTodos
-} = require('../controllers/usuarioController');
+// ============ DEFINICIÓN DE RUTAS ============
 
-// Rutas
-router.get('/perfil', obtenerPerfil);
-router.put('/cambiar-password', cambiarPassword);
-router.put('/tema', cambiarTema);
+// Obtener todos los usuarios
+router.get('/', usuarioController.obtenerTodos);
 
-// 🔥 ESTA USA MULTER
-router.put('/imagen', upload.single('imagen'), actualizarImagen);
+// Obtener perfil de un usuario específico
+router.get('/perfil/:usuario_id', usuarioController.obtenerPerfil);
 
-router.get('/', obtenerTodos);
+// Cambiar contraseña
+router.put('/cambiar-password/:usuario_id', usuarioController.cambiarPassword);
+
+// Cambiar tema (CLARO/OSCURO)
+router.put('/tema/:usuario_id', usuarioController.cambiarTema);
+
+// Actualizar imagen de perfil
+router.put('/imagen/:usuario_id', upload.single('imagen'), usuarioController.actualizarImagen);
 
 module.exports = router;

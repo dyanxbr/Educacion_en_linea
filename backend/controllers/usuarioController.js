@@ -2,49 +2,75 @@ const conexion = require('../config/db');
 const bcrypt = require('bcryptjs');
 const cloudinary = require('cloudinary').v2;
 
-// GET /usuarios/perfil?usuario_id=1
-exports.obtenerPerfil = (req, res) => {
-    const { usuario_id } = req.query;
-    if (!usuario_id) return res.status(400).json({ error: 'usuario_id es requerido' });
+// ============ FUNCIONES DEL CONTROLADOR ============
 
-    const sql = `SELECT id, nombre_completo, correo, imagen_url, tema, rol, fecha_registro FROM usuarios WHERE id = ?`;
+// GET /usuarios/perfil/:usuario_id
+exports.obtenerPerfil = (req, res) => {
+    const { usuario_id } = req.params;
+    
+    if (!usuario_id) {
+        return res.status(400).json({ error: 'usuario_id es requerido' });
+    }
+
+    const sql = `SELECT id, nombre_completo, correo, imagen_url, tema, rol, fecha_registro 
+                 FROM usuarios WHERE id = ?`;
 
     conexion.query(sql, [usuario_id], (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
-        if (result.length === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
+        if (result.length === 0) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
         res.json(result[0]);
     });
 };
 
-// PUT /usuarios/cambiar-password
+// PUT /usuarios/cambiar-password/:usuario_id
 exports.cambiarPassword = async (req, res) => {
-    const { usuario_id, password_actual, password_nueva } = req.body;
+    const { usuario_id } = req.params;
+    const { password_actual, password_nueva } = req.body;
 
-    if (!usuario_id || !password_actual || !password_nueva) {
-        return res.status(400).json({ error: 'usuario_id, password_actual y password_nueva son requeridos' });
+    if (!password_actual || !password_nueva) {
+        return res.status(400).json({ 
+            error: 'password_actual y password_nueva son requeridos' 
+        });
     }
 
+    // Verificar que el usuario existe
     conexion.query('SELECT password FROM usuarios WHERE id = ?', [usuario_id], async (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
+        if (result.length === 0) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
 
+        // Verificar contraseña actual
         const valido = await bcrypt.compare(password_actual, result[0].password);
-        if (!valido) return res.status(401).json({ error: 'Contraseña actual incorrecta' });
+        if (!valido) {
+            return res.status(401).json({ error: 'Contraseña actual incorrecta' });
+        }
 
+        // Encriptar nueva contraseña
         const hash = await bcrypt.hash(password_nueva, 10);
 
+        // Actualizar contraseña
         conexion.query('UPDATE usuarios SET password = ? WHERE id = ?', [hash, usuario_id], (err) => {
             if (err) return res.status(500).json({ error: err.message });
-            res.json({ mensaje: 'Contraseña actualizada' });
+            res.json({ mensaje: 'Contraseña actualizada correctamente' });
         });
     });
 };
 
-// PUT /usuarios/tema
+// PUT /usuarios/tema/:usuario_id
 exports.cambiarTema = (req, res) => {
-    const { usuario_id, tema } = req.body;
+    const { usuario_id } = req.params;
+    const { tema } = req.body;
 
-    if (!usuario_id) return res.status(400).json({ error: 'usuario_id es requerido' });
-    if (!['CLARO', 'OSCURO'].includes(tema)) return res.status(400).json({ error: 'Tema inválido. Use CLARO u OSCURO' });
+    if (!usuario_id) {
+        return res.status(400).json({ error: 'usuario_id es requerido' });
+    }
+    
+    if (!['CLARO', 'OSCURO'].includes(tema)) {
+        return res.status(400).json({ error: 'Tema inválido. Use CLARO u OSCURO' });
+    }
 
     conexion.query('UPDATE usuarios SET tema = ? WHERE id = ?', [tema, usuario_id], (err) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -52,33 +78,59 @@ exports.cambiarTema = (req, res) => {
     });
 };
 
-// PUT /usuarios/imagen
+// PUT /usuarios/imagen/:usuario_id
 exports.actualizarImagen = async (req, res) => {
-    const { usuario_id } = req.body;
-    if (!usuario_id) return res.status(400).json({ error: 'usuario_id es requerido' });
+    const { usuario_id } = req.params;
+    
+    if (!usuario_id) {
+        return res.status(400).json({ error: 'usuario_id es requerido' });
+    }
 
     try {
-        if (!req.file) return res.status(400).json({ error: 'No se recibió imagen' });
+        // Verificar que se haya subido una imagen
+        if (!req.file) {
+            return res.status(400).json({ error: 'No se recibió imagen' });
+        }
 
+        // Verificar que el usuario existe y obtener su public_id anterior
         conexion.query('SELECT public_id FROM usuarios WHERE id = ?', [usuario_id], async (err, result) => {
             if (err) return res.status(500).json({ error: err.message });
+            if (result.length === 0) {
+                return res.status(404).json({ error: 'Usuario no encontrado' });
+            }
 
             const publicIdAnterior = result[0]?.public_id;
+            
+            // Eliminar imagen anterior de Cloudinary si existe
             if (publicIdAnterior) {
                 await cloudinary.uploader.destroy(publicIdAnterior);
             }
 
-            const uploadResult = await cloudinary.uploader.upload(req.file.path, {
-                folder: 'usuarios',
-                transformation: [{ width: 300, height: 300, crop: 'fill' }]
+            // Subir nueva imagen a Cloudinary usando buffer de memoria
+            const uploadResult = await new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    {
+                        folder: 'usuarios',
+                        transformation: [{ width: 300, height: 300, crop: 'fill' }]
+                    },
+                    (error, result) => {
+                        if (error) reject(error);
+                        else resolve(result);
+                    }
+                );
+                stream.end(req.file.buffer);
             });
 
+            // Actualizar base de datos
             conexion.query(
                 'UPDATE usuarios SET imagen_url = ?, public_id = ? WHERE id = ?',
                 [uploadResult.secure_url, uploadResult.public_id, usuario_id],
                 (err) => {
                     if (err) return res.status(500).json({ error: err.message });
-                    res.json({ mensaje: 'Imagen actualizada', imagen_url: uploadResult.secure_url });
+                    res.json({ 
+                        mensaje: 'Imagen actualizada correctamente', 
+                        imagen_url: uploadResult.secure_url 
+                    });
                 }
             );
         });
@@ -89,7 +141,8 @@ exports.actualizarImagen = async (req, res) => {
 
 // GET /usuarios
 exports.obtenerTodos = (req, res) => {
-    const sql = `SELECT id, nombre_completo, correo, imagen_url, tema, rol, fecha_registro FROM usuarios ORDER BY fecha_registro DESC`;
+    const sql = `SELECT id, nombre_completo, correo, imagen_url, tema, rol, fecha_registro 
+                 FROM usuarios ORDER BY fecha_registro DESC`;
 
     conexion.query(sql, (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
