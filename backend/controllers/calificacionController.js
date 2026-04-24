@@ -1,11 +1,12 @@
 const conexion = require('../config/db');
 
-// POST /calificaciones
-exports.calificar = (req, res) => {
-    const { usuario_id, curso_id, puntuacion, comentario } = req.body;
+// POST /calificaciones/:usuario_id/:curso_id
+exports.calificarCurso = (req, res) => {
+    const { usuario_id, curso_id } = req.params;
+    const { puntuacion, comentario } = req.body;
 
-    if (!usuario_id || !curso_id || !puntuacion || !comentario) {
-        return res.status(400).json({ error: 'usuario_id, curso_id, puntuacion y comentario son obligatorios' });
+    if (!puntuacion || !comentario) {
+        return res.status(400).json({ error: 'puntuacion y comentario son requeridos' });
     }
 
     if (puntuacion < 1 || puntuacion > 5) {
@@ -50,7 +51,7 @@ exports.obtenerCalificacionesCurso = (req, res) => {
 
     const sql = `
         SELECT cal.id, cal.puntuacion, cal.comentario, cal.fecha,
-               u.nombre_completo, u.imagen_url
+               u.nombre_completo, u.imagen_url, u.id as usuario_id
         FROM calificaciones cal
         JOIN usuarios u ON cal.usuario_id = u.id
         WHERE cal.curso_id = ?
