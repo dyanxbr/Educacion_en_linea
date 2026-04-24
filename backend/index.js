@@ -47,6 +47,8 @@ app.use('/videos',         require('./routes/videoRoutes'));
 app.use('/progreso',       require('./routes/progresoRoutes'));
 app.use('/calificaciones', require('./routes/calificacionRoutes'));
 app.use('/reportes',       require('./routes/reporteRoutes'));
+app.use('/certificados', require('./routes/certificadoRoutes'));
+
 
 // ── Health check ────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
