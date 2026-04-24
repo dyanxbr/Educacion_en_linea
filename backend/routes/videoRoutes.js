@@ -1,10 +1,12 @@
-const router = require('express').Router();
+const express = require('express');
+const router = express.Router();
+const videoController = require('../controllers/videoController');
 
-const {
-    obtenerVideos
-} = require('../controllers/videoController');
-
-// GET /videos/1
-router.get('/:curso_id', obtenerVideos);
+// Rutas
+router.get('/:curso_id', videoController.obtenerVideos);
+router.get('/detalle/:id', videoController.obtenerVideo);
+router.post('/', videoController.uploadMiddleware, videoController.crearVideo);
+router.put('/:id', videoController.uploadMiddleware, videoController.actualizarVideo);
+router.delete('/:id', videoController.eliminarVideo);
 
 module.exports = router;
