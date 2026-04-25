@@ -23,7 +23,7 @@ export default function EditarCursoPage() {
   const fetchCurso = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:3000/cursos/${id}`, {
+      const res = await fetch(`educacionenlinea-production.up.railway.app/cursos/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -69,7 +69,7 @@ export default function EditarCursoPage() {
     if (!confirm('¿Eliminar este video?')) return;
     try {
       const token = localStorage.getItem('token');
-      await fetch(`http://localhost:3000/videos/${videoId}`, {
+      await fetch(`educacionenlinea-production.up.railway.app/videos/${videoId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

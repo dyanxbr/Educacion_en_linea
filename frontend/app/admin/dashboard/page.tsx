@@ -18,7 +18,7 @@ export default function DashboardPage() {
     const fetchResumen = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:3000/reportes/resumen', {
+        const res = await fetch('educacionenlinea-production.up.railway.app /reportes/resumen', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();

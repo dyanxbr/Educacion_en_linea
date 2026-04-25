@@ -37,7 +37,7 @@ export default function CertificadosPage() {
         return;
       }
 
-      const res = await fetch(`http://localhost:3000/certificados/mis-certificados?usuario_id=${usuarioId}`, {
+      const res = await fetch(`educacionenlinea-production.up.railway.app/certificados/mis-certificados?usuario_id=${usuarioId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       

@@ -36,7 +36,7 @@ export default function ProgresoPage() {
         const usuarioId = getUsuarioId();
 
         // Obtener todos los cursos
-        const resCursos = await fetch('http://localhost:3000/cursos', {
+        const resCursos = await fetch('educacionenlinea-production.up.railway.app/cursos', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const todosCursos = await resCursos.json();
@@ -44,7 +44,7 @@ export default function ProgresoPage() {
         // Obtener progreso de cada curso
         const cursosConProgreso = await Promise.all(
           todosCursos.map(async (curso: any) => {
-            const resProgreso = await fetch(`http://localhost:3000/progreso/curso/${curso.id}?usuario_id=${usuarioId}`, {
+            const resProgreso = await fetch(`educacionenlinea-production.up.railway.app/progreso/curso/${curso.id}?usuario_id=${usuarioId}`, {
               headers: { 'Authorization': `Bearer ${token}` }
             });
             const progreso = await resProgreso.json();

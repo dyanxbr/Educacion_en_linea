@@ -20,7 +20,7 @@ export default function ProfesoresPage() {
   const fetchProfesores = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:3000/profesores', {
+      const res = await fetch('educacionenlinea-production.up.railway.app/profesores', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -38,7 +38,7 @@ export default function ProfesoresPage() {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:3000/profesores', {
+      const res = await fetch('educacionenlinea-production.up.railway.app/profesores', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -66,7 +66,7 @@ export default function ProfesoresPage() {
 
     try {
       const token = localStorage.getItem('token');
-      await fetch(`http://localhost:3000/profesores/${id}`, {
+      await fetch(`educacionenlinea-production.up.railway.app/profesores/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

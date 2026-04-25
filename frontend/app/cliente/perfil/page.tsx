@@ -37,7 +37,7 @@ export default function PerfilPage() {
       const usuarioId = getUsuarioId();
       if (!usuarioId) return;
 
-      const res = await fetch(`http://localhost:3000/usuarios/perfil/${usuarioId}`, {
+      const res = await fetch(`educacionenlinea-production.up.railway.app/usuarios/perfil/${usuarioId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -58,7 +58,7 @@ export default function PerfilPage() {
       const token = localStorage.getItem('token');
       const usuarioId = getUsuarioId();
 
-      const res = await fetch(`http://localhost:3000/usuarios/cambiar-password/${usuarioId}`, {
+      const res = await fetch(`educacionenlinea-production.up.railway.app/usuarios/cambiar-password/${usuarioId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -88,7 +88,7 @@ export default function PerfilPage() {
       const token = localStorage.getItem('token');
       const usuarioId = getUsuarioId();
 
-      const res = await fetch(`http://localhost:3000/usuarios/tema/${usuarioId}`, {
+      const res = await fetch(`educacionenlinea-production.up.railway.app/usuarios/tema/${usuarioId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -117,7 +117,7 @@ export default function PerfilPage() {
       const token = localStorage.getItem('token');
       const usuarioId = getUsuarioId();
 
-      const res = await fetch(`http://localhost:3000/usuarios/imagen/${usuarioId}`, {
+      const res = await fetch(`educacionenlinea-production.up.railway.app/usuarios/imagen/${usuarioId}`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData

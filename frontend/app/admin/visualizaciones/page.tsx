@@ -17,7 +17,7 @@ export default function VisualizacionesPage() {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:3000/reportes/visualizaciones', {
+        const res = await fetch('educacionenlinea-production.up.railway.app/reportes/visualizaciones', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();

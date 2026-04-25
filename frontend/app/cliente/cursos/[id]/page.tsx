@@ -53,7 +53,7 @@ export default function CursoDetallePage() {
       const usuarioId = getUsuarioId();
       if (!usuarioId) return;
 
-      const res = await fetch(`http://localhost:3000/calificaciones/curso/${id}`, {
+      const res = await fetch(`educacionenlinea-production.up.railway.app/calificaciones/curso/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const calificaciones = await res.json();
@@ -73,14 +73,14 @@ export default function CursoDetallePage() {
       const usuario_id = getUsuarioId();
 
       // Obtener detalles del curso
-      const resCurso = await fetch(`http://localhost:3000/cursos/${id}`, {
+      const resCurso = await fetch(`educacionenlinea-production.up.railway.app/cursos/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const cursoData = await resCurso.json();
       setCurso(cursoData);
 
       // Obtener progreso del usuario
-      const resProgreso = await fetch(`http://localhost:3000/progreso/curso/${id}?usuario_id=${usuario_id}`, {
+      const resProgreso = await fetch(`educacionenlinea-production.up.railway.app/progreso/curso/${id}?usuario_id=${usuario_id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const progresoData = await resProgreso.json();
@@ -108,7 +108,7 @@ export default function CursoDetallePage() {
       const token = localStorage.getItem('token');
       const usuario_id = getUsuarioId();
 
-      await fetch('http://localhost:3000/progreso/ver-video', {
+      await fetch('educacionenlinea-production.up.railway.app/progreso/ver-video', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -132,7 +132,7 @@ export default function CursoDetallePage() {
       const token = localStorage.getItem('token');
       const usuario_id = getUsuarioId();
 
-      const res = await fetch(`http://localhost:3000/calificaciones/${usuario_id}/${id}`, {
+      const res = await fetch(`educacionenlinea-production.up.railway.app/calificaciones/${usuario_id}/${id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -168,7 +168,7 @@ export default function CursoDetallePage() {
       const token = localStorage.getItem('token');
       const usuario_id = getUsuarioId();
 
-      const res = await fetch('http://localhost:3000/certificados/generar', {
+      const res = await fetch('educacionenlinea-production.up.railway.app/certificados/generar', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -25,7 +25,7 @@ export default function CursosPage() {
   const fetchCursos = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:3000/cursos', {
+      const res = await fetch('educacionenlinea-production.up.railway.app/cursos', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();

@@ -24,7 +24,7 @@ export default function ClienteLayout({ children }: { children: ReactNode }) {
   const cargarUsuario = async (token: string) => {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
-      const res = await fetch(`http://localhost:3000/usuarios/perfil/${payload.id}`, {
+      const res = await fetch(`educacionenlinea-production.up.railway.app/usuarios/perfil/${payload.id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();

@@ -19,7 +19,7 @@ export default function CalificacionesPage() {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:3000/calificaciones/admin', {
+        const res = await fetch('educacionenlinea-production.up.railway.app/calificaciones/admin', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();

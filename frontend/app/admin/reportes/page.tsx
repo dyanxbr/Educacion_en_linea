@@ -19,7 +19,7 @@ export default function ReportesPage() {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:3000/reportes/cursos-populares', {
+        const res = await fetch('educacionenlinea-production.up.railway.app/reportes/cursos-populares', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();

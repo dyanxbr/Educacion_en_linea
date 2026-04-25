@@ -27,7 +27,7 @@ export default function CursosPage() {
   const fetchCursos = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:3000/cursos', {
+      const res = await fetch('educacionenlinea-production.up.railway.app/cursos', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -40,7 +40,7 @@ export default function CursosPage() {
   const fetchProfesores = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:3000/profesores', {
+      const res = await fetch('educacionenlinea-production.up.railway.app/profesores', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -56,7 +56,7 @@ export default function CursosPage() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      await fetch('http://localhost:3000/cursos', {
+      await fetch('educacionenlinea-production.up.railway.app/cursos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,7 +76,7 @@ export default function CursosPage() {
     if (!confirm('¿Eliminar este curso y todos sus videos?')) return;
     try {
       const token = localStorage.getItem('token');
-      await fetch(`http://localhost:3000/cursos/${id}`, {
+      await fetch(`educacionenlinea-production.up.railway.app/cursos/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
