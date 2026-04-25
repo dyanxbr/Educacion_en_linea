@@ -1,9 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-  experimental: {
-    // Si hay problemas con Turbopack
-  }
-};
+  output: 'standalone',  // ← IMPORTANTE para Railway
+  swcMinify: true,
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig
