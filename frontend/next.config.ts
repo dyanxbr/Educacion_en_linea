@@ -1,7 +1,7 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  output: 'standalone',  // ← IMPORTANTE para Railway
-  swcMinify: true,
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  output: 'standalone',
 }
 
-module.exports = nextConfig
+export default nextConfig
