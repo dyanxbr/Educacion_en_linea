@@ -1,123 +1,117 @@
-const conexion = require('../config/db');
-const cloudinary = require('cloudinary').v2;
-const PDFDocument = require('pdfkit');
-const path = require('path');
-const fs = require('fs');
-const os = require('os');
-
-// POST /certificados/generar
-exports.generarCertificado = (req, res) => {
-    const { usuario_id, curso_id } = req.body;
-
-    if (!usuario_id || !curso_id) return res.status(400).json({ error: 'usuario_id y curso_id son requeridos' });
-
-    const sqlVerificar = `
-        SELECT u.nombre_completo, c.nombre AS curso, p.nombre AS profesor, cal.puntuacion
-        FROM usuarios u
-        JOIN calificaciones cal ON cal.usuario_id = u.id AND cal.curso_id = ?
-        JOIN cursos c ON c.id = cal.curso_id
-        LEFT JOIN profesores p ON c.profesor_id = p.id
-        WHERE u.id = ?
-    `;
-
-    conexion.query(sqlVerificar, [curso_id, usuario_id], async (err, result) => {
-        if (err) return res.status(500).json({ error: err.message });
-
-        if (result.length === 0) {
-            return res.status(403).json({ error: 'Debes completar y calificar el curso para obtener el certificado' });
-        }
-
-        conexion.query(
-            'SELECT archivo_url FROM certificados WHERE usuario_id = ? AND curso_id = ?',
-            [usuario_id, curso_id],
-            async (err, certExistente) => {
-                if (err) return res.status(500).json({ error: err.message });
-
-                if (certExistente.length > 0) {
-                    return res.json({ mensaje: 'Ya tienes un certificado para este curso', archivo_url: certExistente[0].archivo_url });
-                }
-
-                const { nombre_completo, curso, profesor } = result[0];
-                const fecha = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
-
-                try {
-                    const pdfPath = path.join(os.tmpdir(), `cert_${usuario_id}_${curso_id}.pdf`);
-                    await generarPDF({ nombre_completo, curso, profesor, fecha, pdfPath });
-
-                    const uploadResult = await cloudinary.uploader.upload(pdfPath, {
-                        folder: 'certificados',
-                        resource_type: 'raw',
-                        public_id: `cert_${usuario_id}_${curso_id}`,
-                        format: 'pdf'
-                    });
-
-                    fs.unlinkSync(pdfPath);
-
-                    const sqlInsert = `INSERT INTO certificados (usuario_id, curso_id, public_id, archivo_url, tipo) VALUES (?, ?, ?, ?, 'PDF')`;
-
-                    conexion.query(sqlInsert, [usuario_id, curso_id, uploadResult.public_id, uploadResult.secure_url], (err) => {
-                        if (err) return res.status(500).json({ error: err.message });
-                        res.status(201).json({ mensaje: '¡Certificado generado! 🎓', archivo_url: uploadResult.secure_url });
-                    });
-                } catch (err) {
-                    res.status(500).json({ error: 'Error generando certificado: ' + err.message });
-                }
+// Ruta de prueba para diagnosticar - GET /certificados/test/:usuario_id/:curso_id
+exports.testGenerarPdf = async (req, res) => {
+    const { usuario_id, curso_id } = req.params;
+    
+    console.log('=== INICIANDO TEST DE CERTIFICADO ===');
+    console.log('Usuario:', usuario_id, 'Curso:', curso_id);
+    
+    try {
+        // 1. Obtener datos del usuario
+        const sqlUsuario = `SELECT nombre_completo FROM usuarios WHERE id = ?`;
+        conexion.query(sqlUsuario, [usuario_id], async (err, userResult) => {
+            if (err) {
+                console.error('Error usuario:', err);
+                return res.status(500).json({ error: err.message });
             }
-        );
-    });
+            if (userResult.length === 0) {
+                return res.status(404).json({ error: 'Usuario no encontrado' });
+            }
+            
+            // 2. Obtener datos del curso
+            const sqlCurso = `
+                SELECT c.nombre as curso, p.nombre as profesor 
+                FROM cursos c 
+                LEFT JOIN profesores p ON c.profesor_id = p.id 
+                WHERE c.id = ?
+            `;
+            
+            conexion.query(sqlCurso, [curso_id], async (err, courseResult) => {
+                if (err) {
+                    console.error('Error curso:', err);
+                    return res.status(500).json({ error: err.message });
+                }
+                if (courseResult.length === 0) {
+                    return res.status(404).json({ error: 'Curso no encontrado' });
+                }
+                
+                const nombre_completo = userResult[0].nombre_completo;
+                const curso = courseResult[0].curso;
+                const profesor = courseResult[0].profesor;
+                const fecha = new Date().toLocaleDateString('es-MX');
+                
+                console.log('Datos:', { nombre_completo, curso, profesor, fecha });
+                
+                // 3. Generar PDF
+                const pdfPath = path.join(os.tmpdir(), `test_cert_${usuario_id}_${curso_id}_${Date.now()}.pdf`);
+                console.log('Generando PDF en:', pdfPath);
+                
+                await generarPDF({ nombre_completo, curso, profesor, fecha, pdfPath });
+                
+                // 4. Verificar que el PDF se creó
+                const stats = fs.statSync(pdfPath);
+                console.log('PDF creado, tamaño:', stats.size, 'bytes');
+                
+                if (stats.size < 1000) {
+                    console.error('ERROR: PDF demasiado pequeño, posiblemente corrupto');
+                }
+                
+                // 5. Subir a Cloudinary
+                console.log('Subiendo a Cloudinary...');
+                const uploadResult = await cloudinary.uploader.upload(pdfPath, {
+                    folder: 'certificados',
+                    resource_type: 'auto',
+                    public_id: `test_cert_${usuario_id}_${curso_id}`,
+                });
+                
+                console.log('Upload exitoso:', uploadResult.secure_url);
+                console.log('Public ID:', uploadResult.public_id);
+                
+                // 6. Limpiar archivo temporal
+                fs.unlinkSync(pdfPath);
+                
+                // 7. Guardar en base de datos (opcional)
+                const sqlInsert = `INSERT INTO certificados (usuario_id, curso_id, public_id, archivo_url, tipo) 
+                                  VALUES (?, ?, ?, ?, 'PDF')
+                                  ON DUPLICATE KEY UPDATE archivo_url = VALUES(archivo_url), public_id = VALUES(public_id)`;
+                
+                conexion.query(sqlInsert, [usuario_id, curso_id, uploadResult.public_id, uploadResult.secure_url], (err) => {
+                    if (err) {
+                        console.error('Error guardando en BD:', err);
+                    } else {
+                        console.log('Guardado en BD correctamente');
+                    }
+                });
+                
+                res.json({ 
+                    mensaje: 'Test completado', 
+                    url: uploadResult.secure_url,
+                    tamano: stats.size,
+                    public_id: uploadResult.public_id
+                });
+            });
+        });
+    } catch (error) {
+        console.error('Error detallado:', error);
+        res.status(500).json({ 
+            error: error.message, 
+            stack: error.stack,
+            nombre: error.name
+        });
+    }
 };
 
-// GET /certificados/mis-certificados?usuario_id=1
-exports.misCertificados = (req, res) => {
-    const { usuario_id } = req.query;
-    if (!usuario_id) return res.status(400).json({ error: 'usuario_id es requerido' });
-
-    const sql = `
-        SELECT cert.id, cert.archivo_url, cert.tipo, cert.fecha,
-               c.nombre AS curso, p.nombre AS profesor
-        FROM certificados cert
-        JOIN cursos c ON cert.curso_id = c.id
-        LEFT JOIN profesores p ON c.profesor_id = p.id
-        WHERE cert.usuario_id = ?
-        ORDER BY cert.fecha DESC
-    `;
-
-    conexion.query(sql, [usuario_id], (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(results);
-    });
+// Ruta para verificar credenciales de Cloudinary
+exports.verificarCloudinary = (req, res) => {
+    try {
+        // Verificar configuración (sin exponer secretos completos)
+        const config = cloudinary.config();
+        res.json({
+            cloud_name: config.cloud_name,
+            api_key: config.api_key ? 'Configurada' : 'No configurada',
+            api_secret: config.api_secret ? 'Configurada' : 'No configurada',
+            status: 'OK'
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 };
-
-function generarPDF({ nombre_completo, curso, profesor, fecha, pdfPath }) {
-    return new Promise((resolve, reject) => {
-        const doc = new PDFDocument({ size: 'A4', layout: 'landscape' });
-        const stream = fs.createWriteStream(pdfPath);
-
-        doc.pipe(stream);
-
-        doc.rect(0, 0, doc.page.width, doc.page.height).fill('#f0f4ff');
-        doc.rect(0, 0, doc.page.width, 10).fill('#3b5bdb');
-        doc.rect(0, doc.page.height - 10, doc.page.width, 10).fill('#3b5bdb');
-
-        doc.fontSize(36).fillColor('#3b5bdb').font('Helvetica-Bold')
-           .text('CERTIFICADO DE FINALIZACIÓN', 0, 80, { align: 'center' });
-
-        doc.moveTo(80, 140).lineTo(doc.page.width - 80, 140).strokeColor('#3b5bdb').lineWidth(2).stroke();
-
-        doc.fontSize(18).fillColor('#333').font('Helvetica').text('Se certifica que', 0, 170, { align: 'center' });
-        doc.fontSize(28).fillColor('#1a1a2e').font('Helvetica-Bold').text(nombre_completo, 0, 205, { align: 'center' });
-        doc.fontSize(18).fillColor('#333').font('Helvetica').text('ha completado satisfactoriamente el curso', 0, 255, { align: 'center' });
-        doc.fontSize(24).fillColor('#3b5bdb').font('Helvetica-Bold').text(`"${curso}"`, 0, 285, { align: 'center' });
-
-        if (profesor) {
-            doc.fontSize(16).fillColor('#555').font('Helvetica').text(`Impartido por: ${profesor}`, 0, 330, { align: 'center' });
-        }
-
-        doc.fontSize(14).fillColor('#777').font('Helvetica').text(`Fecha de emisión: ${fecha}`, 0, 380, { align: 'center' });
-        doc.moveTo(80, 410).lineTo(doc.page.width - 80, 410).strokeColor('#3b5bdb').lineWidth(1).stroke();
-
-        doc.end();
-        stream.on('finish', resolve);
-        stream.on('error', reject);
-    });
-}
