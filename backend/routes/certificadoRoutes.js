@@ -1,15 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { 
-    generarCertificado, 
-    misCertificados, 
-    testGenerarPdf,
-    verificarCloudinary 
-} = require('../controllers/certificadoController');
+const certificadoController = require('../controllers/certificadoController');
 
-router.post('/generar', generarCertificado);
-router.get('/mis-certificados', misCertificados);
-router.get('/test/:usuario_id/:curso_id', testGenerarPdf);  // ← Ruta de prueba
-router.get('/verificar-cloudinary', verificarCloudinary);   // ← Verificar Cloudinary
+// Rutas existentes
+router.post('/generar', certificadoController.generarCertificado);
+router.get('/mis-certificados', certificadoController.misCertificados);
+
+// Rutas de prueba (agregar solo para depuración)
+router.get('/test/:usuario_id/:curso_id', certificadoController.testGenerarPdf);
+router.get('/verificar-cloudinary', certificadoController.verificarCloudinary);
 
 module.exports = router;
