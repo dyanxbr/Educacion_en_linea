@@ -18,7 +18,6 @@ exports.crearVideo = async (req, res) => {
     }
 
     try {
-        // Subir video a Cloudinary
         const uploadResult = await new Promise((resolve, reject) => {
             const stream = cloudinary.uploader.upload_stream(
                 {
@@ -39,7 +38,6 @@ exports.crearVideo = async (req, res) => {
         const url_video = uploadResult.secure_url;
         const public_id = uploadResult.public_id;
 
-        // Guardar en base de datos (usando tus columnas reales)
         const sql = `INSERT INTO videos (titulo, curso_id, url_video, orden) 
                      VALUES (?, ?, ?, ?)`;
 
@@ -95,9 +93,7 @@ exports.actualizarVideo = async (req, res) => {
         let url_video = null;
         let public_id = null;
 
-        // Si se subió un nuevo video
         if (req.file) {
-            // Subir nuevo video a Cloudinary
             const uploadResult = await new Promise((resolve, reject) => {
                 const stream = cloudinary.uploader.upload_stream(
                     {
@@ -115,7 +111,6 @@ exports.actualizarVideo = async (req, res) => {
             url_video = uploadResult.secure_url;
             public_id = uploadResult.public_id;
 
-            // Actualizar con nuevo video
             const sql = `UPDATE videos SET titulo = ?, url_video = ?, orden = ? WHERE id = ?`;
             conexion.query(sql, [titulo, url_video, orden, id], (err, result) => {
                 if (err) return res.status(500).json({ error: err.message });
@@ -123,7 +118,6 @@ exports.actualizarVideo = async (req, res) => {
                 res.json({ mensaje: 'Video actualizado', url_video: url_video });
             });
         } else {
-            // Actualizar solo título y orden
             const sql = `UPDATE videos SET titulo = ?, orden = ? WHERE id = ?`;
             conexion.query(sql, [titulo, orden, id], (err, result) => {
                 if (err) return res.status(500).json({ error: err.message });

@@ -5,7 +5,6 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 
-// POST /certificados/generar
 exports.generarCertificado = (req, res) => {
     const { usuario_id, curso_id } = req.body;
 
@@ -68,7 +67,6 @@ exports.generarCertificado = (req, res) => {
     });
 };
 
-// GET /certificados/mis-certificados?usuario_id=1
 exports.misCertificados = (req, res) => {
     const { usuario_id } = req.query;
     if (!usuario_id) return res.status(400).json({ error: 'usuario_id es requerido' });
@@ -89,7 +87,6 @@ exports.misCertificados = (req, res) => {
     });
 };
 
-// ✅ RUTA DE PRUEBA - GET /certificados/test/:usuario_id/:curso_id
 exports.testGenerarPdf = async (req, res) => {
     const { usuario_id, curso_id } = req.params;
     
@@ -144,7 +141,6 @@ exports.testGenerarPdf = async (req, res) => {
     }
 };
 
-// ✅ RUTA DE VERIFICACIÓN - GET /certificados/verificar-cloudinary
 exports.verificarCloudinary = (req, res) => {
     try {
         const config = cloudinary.config();
@@ -159,7 +155,6 @@ exports.verificarCloudinary = (req, res) => {
     }
 };
 
-// ============ FUNCIÓN PARA GENERAR PDF ============
 function generarPDF({ nombre_completo, curso, profesor, fecha, pdfPath }) {
     return new Promise((resolve, reject) => {
         const doc = new PDFDocument({ size: 'A4', layout: 'landscape' });

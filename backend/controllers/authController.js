@@ -2,7 +2,6 @@ const conexion = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// POST /auth/register
 exports.register = async (req, res) => {
     const { nombre_completo, correo, password } = req.body;
 
@@ -43,7 +42,6 @@ exports.register = async (req, res) => {
     }
 };
 
-// POST /auth/login
 exports.login = async (req, res) => {
     const { correo, password } = req.body;
 
@@ -70,7 +68,6 @@ exports.login = async (req, res) => {
                     return res.status(401).json({ error: 'Credenciales incorrectas' });
                 }
 
-                // 🔥 GENERAR TOKEN
                 const token = jwt.sign(
                     {
                         id: usuario.id,
@@ -81,7 +78,6 @@ exports.login = async (req, res) => {
                     { expiresIn: '8h' }
                 );
 
-                // 🔒 quitar password del response
                 const { password: _, ...usuarioSinPassword } = usuario;
 
                 res.json({
@@ -97,7 +93,6 @@ exports.login = async (req, res) => {
     );
 };
 
-// POST /auth/logout
 exports.logout = (req, res) => {
     res.json({ mensaje: 'Sesión cerrada correctamente' });
 };

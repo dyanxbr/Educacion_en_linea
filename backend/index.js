@@ -15,7 +15,8 @@ const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:3001',
     'https://illustrious-healing-production.up.railway.app',
-    'https://educacion-en-linea-7u34xyixd.vercel.app'
+    'https://educacion-en-linea-7u34xyixd.vercel.app',
+    'https://educacion-en-linea.vercel.app'
 ];
 
 app.use(cors({

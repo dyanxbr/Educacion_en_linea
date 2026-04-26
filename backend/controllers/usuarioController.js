@@ -2,9 +2,7 @@ const conexion = require('../config/db');
 const bcrypt = require('bcryptjs');
 const cloudinary = require('cloudinary').v2;
 
-// ============ FUNCIONES DEL CONTROLADOR ============
 
-// GET /usuarios/perfil/:usuario_id
 exports.obtenerPerfil = (req, res) => {
     const { usuario_id } = req.params;
     
@@ -24,7 +22,6 @@ exports.obtenerPerfil = (req, res) => {
     });
 };
 
-// PUT /usuarios/cambiar-password/:usuario_id
 exports.cambiarPassword = async (req, res) => {
     const { usuario_id } = req.params;
     const { password_actual, password_nueva } = req.body;
@@ -35,23 +32,19 @@ exports.cambiarPassword = async (req, res) => {
         });
     }
 
-    // Verificar que el usuario existe
     conexion.query('SELECT password FROM usuarios WHERE id = ?', [usuario_id], async (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
         if (result.length === 0) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
 
-        // Verificar contraseña actual
         const valido = await bcrypt.compare(password_actual, result[0].password);
         if (!valido) {
             return res.status(401).json({ error: 'Contraseña actual incorrecta' });
         }
 
-        // Encriptar nueva contraseña
         const hash = await bcrypt.hash(password_nueva, 10);
 
-        // Actualizar contraseña
         conexion.query('UPDATE usuarios SET password = ? WHERE id = ?', [hash, usuario_id], (err) => {
             if (err) return res.status(500).json({ error: err.message });
             res.json({ mensaje: 'Contraseña actualizada correctamente' });
@@ -59,7 +52,6 @@ exports.cambiarPassword = async (req, res) => {
     });
 };
 
-// PUT /usuarios/tema/:usuario_id
 exports.cambiarTema = (req, res) => {
     const { usuario_id } = req.params;
     const { tema } = req.body;
@@ -78,7 +70,6 @@ exports.cambiarTema = (req, res) => {
     });
 };
 
-// PUT /usuarios/imagen/:usuario_id
 exports.actualizarImagen = async (req, res) => {
     const { usuario_id } = req.params;
     
@@ -87,12 +78,10 @@ exports.actualizarImagen = async (req, res) => {
     }
 
     try {
-        // Verificar que se haya subido una imagen
         if (!req.file) {
             return res.status(400).json({ error: 'No se recibió imagen' });
         }
 
-        // Verificar que el usuario existe y obtener su public_id anterior
         conexion.query('SELECT public_id FROM usuarios WHERE id = ?', [usuario_id], async (err, result) => {
             if (err) return res.status(500).json({ error: err.message });
             if (result.length === 0) {
@@ -101,12 +90,10 @@ exports.actualizarImagen = async (req, res) => {
 
             const publicIdAnterior = result[0]?.public_id;
             
-            // Eliminar imagen anterior de Cloudinary si existe
             if (publicIdAnterior) {
                 await cloudinary.uploader.destroy(publicIdAnterior);
             }
 
-            // Subir nueva imagen a Cloudinary usando buffer de memoria
             const uploadResult = await new Promise((resolve, reject) => {
                 const stream = cloudinary.uploader.upload_stream(
                     {
@@ -121,7 +108,6 @@ exports.actualizarImagen = async (req, res) => {
                 stream.end(req.file.buffer);
             });
 
-            // Actualizar base de datos
             conexion.query(
                 'UPDATE usuarios SET imagen_url = ?, public_id = ? WHERE id = ?',
                 [uploadResult.secure_url, uploadResult.public_id, usuario_id],
@@ -139,7 +125,6 @@ exports.actualizarImagen = async (req, res) => {
     }
 };
 
-// GET /usuarios
 exports.obtenerTodos = (req, res) => {
     const sql = `SELECT id, nombre_completo, correo, imagen_url, tema, rol, fecha_registro 
                  FROM usuarios ORDER BY fecha_registro DESC`;

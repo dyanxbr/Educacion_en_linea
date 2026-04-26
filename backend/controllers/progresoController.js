@@ -1,6 +1,5 @@
 const conexion = require('../config/db');
 
-// POST /progreso/ver-video
 exports.verVideo = (req, res) => {
     const { usuario_id, video_id } = req.body;
 
@@ -60,7 +59,6 @@ function registrarVisto(usuario_id, video_id, res) {
     });
 }
 
-// GET /progreso/curso/:curso_id?usuario_id=1
 exports.obtenerProgresoCurso = (req, res) => {
     const { usuario_id } = req.query;
     const { curso_id } = req.params;

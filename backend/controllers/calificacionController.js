@@ -1,6 +1,5 @@
 const conexion = require('../config/db');
 
-// POST /calificaciones/:usuario_id/:curso_id
 exports.calificarCurso = (req, res) => {
     const { usuario_id, curso_id } = req.params;
     const { puntuacion, comentario } = req.body;
@@ -45,7 +44,6 @@ exports.calificarCurso = (req, res) => {
     });
 };
 
-// GET /calificaciones/curso/:curso_id
 exports.obtenerCalificacionesCurso = (req, res) => {
     const { curso_id } = req.params;
 
@@ -64,7 +62,6 @@ exports.obtenerCalificacionesCurso = (req, res) => {
     });
 };
 
-// GET /calificaciones/admin
 exports.obtenerTodasCalificaciones = (req, res) => {
     const sql = `
         SELECT cal.id, cal.puntuacion, cal.comentario, cal.fecha,

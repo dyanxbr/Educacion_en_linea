@@ -1,6 +1,5 @@
 const conexion = require('../config/db');
 
-// POST /profesores  (solo ADMIN)
 exports.crearProfesor = (req, res) => {
     const { nombre, correo, especialidad } = req.body;
 
@@ -14,7 +13,6 @@ exports.crearProfesor = (req, res) => {
     });
 };
 
-// GET /profesores
 exports.obtenerProfesores = (req, res) => {
     conexion.query('SELECT * FROM profesores ORDER BY nombre', (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -22,7 +20,6 @@ exports.obtenerProfesores = (req, res) => {
     });
 };
 
-// GET /profesores/:id
 exports.obtenerProfesor = (req, res) => {
     conexion.query('SELECT * FROM profesores WHERE id = ?', [req.params.id], (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -31,7 +28,6 @@ exports.obtenerProfesor = (req, res) => {
     });
 };
 
-// PUT /profesores/:id  (solo ADMIN)
 exports.actualizarProfesor = (req, res) => {
     const { nombre, correo, especialidad } = req.body;
 
@@ -44,7 +40,6 @@ exports.actualizarProfesor = (req, res) => {
     });
 };
 
-// DELETE /profesores/:id  (solo ADMIN)
 exports.eliminarProfesor = (req, res) => {
     conexion.query('DELETE FROM profesores WHERE id = ?', [req.params.id], (err, result) => {
         if (err) return res.status(500).json({ error: err.message });

@@ -1,6 +1,5 @@
 const conexion = require('../config/db');
 
-// GET /reportes/cursos-populares  — cursos ordenados por calificación promedio
 exports.cursosPopulares = (req, res) => {
     const sql = `
         SELECT
@@ -26,7 +25,6 @@ exports.cursosPopulares = (req, res) => {
     });
 };
 
-// GET /reportes/visualizaciones  — qué videos se ven más
 exports.visualizacionesPorVideo = (req, res) => {
     const sql = `
         SELECT
@@ -47,7 +45,6 @@ exports.visualizacionesPorVideo = (req, res) => {
     });
 };
 
-// GET /reportes/comentarios/:curso_id  — comentarios de un curso con detalle
 exports.comentariosCurso = (req, res) => {
     const { curso_id } = req.params;
 
@@ -70,7 +67,6 @@ exports.comentariosCurso = (req, res) => {
     });
 };
 
-// GET /reportes/resumen  — resumen general del sistema
 exports.resumenGeneral = (req, res) => {
     const queries = {
         totalUsuarios: 'SELECT COUNT(*) AS total FROM usuarios WHERE rol = "USUARIO"',

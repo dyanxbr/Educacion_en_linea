@@ -1,6 +1,5 @@
 const conexion = require('../config/db');
 
-// POST /cursos  (solo ADMIN)
 exports.crearCurso = (req, res) => {
     const { nombre, profesor_id } = req.body;
 
@@ -16,7 +15,6 @@ exports.crearCurso = (req, res) => {
     });
 };
 
-// GET /cursos  (cualquier usuario autenticado)
 exports.obtenerCursos = (req, res) => {
     const sql = `
         SELECT
@@ -41,7 +39,6 @@ exports.obtenerCursos = (req, res) => {
     });
 };
 
-// GET /cursos/:id  (detalle con sus videos)
 exports.obtenerCurso = (req, res) => {
     const { id } = req.params;
 
@@ -66,7 +63,6 @@ exports.obtenerCurso = (req, res) => {
     });
 };
 
-// PUT /cursos/:id  (solo ADMIN)
 exports.actualizarCurso = (req, res) => {
     const { nombre, profesor_id } = req.body;
 
@@ -79,7 +75,6 @@ exports.actualizarCurso = (req, res) => {
     });
 };
 
-// DELETE /cursos/:id  (solo ADMIN)
 exports.eliminarCurso = (req, res) => {
     conexion.query('DELETE FROM cursos WHERE id = ?', [req.params.id], (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
