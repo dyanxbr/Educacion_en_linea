@@ -4,11 +4,9 @@ const multer = require('multer');
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-// POST /videos - Crear un nuevo video
 exports.crearVideo = async (req, res) => {
     const { titulo, curso_id, orden } = req.body;
 
-    // Validaciones
     if (!titulo) {
         return res.status(400).json({ error: 'El título es obligatorio' });
     }
@@ -62,7 +60,6 @@ exports.crearVideo = async (req, res) => {
     }
 };
 
-// GET /videos/:curso_id - Obtener videos de un curso
 exports.obtenerVideos = (req, res) => {
     const { curso_id } = req.params;
 
@@ -76,7 +73,6 @@ exports.obtenerVideos = (req, res) => {
     );
 };
 
-// GET /videos/detalle/:id - Obtener un video específico
 exports.obtenerVideo = (req, res) => {
     const { id } = req.params;
 
@@ -91,7 +87,6 @@ exports.obtenerVideo = (req, res) => {
     );
 };
 
-// PUT /videos/:id - Actualizar un video (solo título y orden)
 exports.actualizarVideo = async (req, res) => {
     const { id } = req.params;
     const { titulo, orden } = req.body;
@@ -141,7 +136,6 @@ exports.actualizarVideo = async (req, res) => {
     }
 };
 
-// DELETE /videos/:id - Eliminar un video
 exports.eliminarVideo = (req, res) => {
     const { id } = req.params;
 
@@ -152,5 +146,4 @@ exports.eliminarVideo = (req, res) => {
     });
 };
 
-// Middleware para subir archivos
 exports.uploadMiddleware = upload.single('video');
