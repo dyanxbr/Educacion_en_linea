@@ -3,6 +3,6 @@
     "command": "npm run build"
   },
   "start": {
-    "command": "node .next/standalone/server.js"
+    "command": "npm run start"
   }
 }
