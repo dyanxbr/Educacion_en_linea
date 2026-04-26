@@ -2,68 +2,92 @@
 
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 
-// Estilos del certificado
 const styles = StyleSheet.create({
     page: {
+        backgroundColor: '#ffffff',
         padding: 50,
-        backgroundColor: '#f0f4ff',
-        border: 'none',
+    },
+    borderContainer: {
+        border: '2px solid #ECCC5F',
+        padding: 40,
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
     },
     title: {
-        fontSize: 32,
-        textAlign: 'center',
-        marginBottom: 30,
-        color: '#3b5bdb',
+        fontSize: 24,
         fontWeight: 'bold',
-        fontFamily: 'Helvetica-Bold',
-    },
-    subtitle: {
-        fontSize: 18,
+        color: '#ECCC5F',
         textAlign: 'center',
-        marginBottom: 15,
-        color: '#333',
-        fontFamily: 'Helvetica',
+        marginBottom: 40,
+        letterSpacing: 1,
+    },
+    awardText: {
+        fontSize: 18,
+        color: '#333333',
+        textAlign: 'center',
+        marginBottom: 20,
     },
     name: {
         fontSize: 28,
+        fontWeight: 'bold',
+        color: '#1a1a1a',
         textAlign: 'center',
         marginBottom: 20,
-        fontWeight: 'bold',
-        color: '#1a1a2e',
-        fontFamily: 'Helvetica-Bold',
     },
-    course: {
-        fontSize: 24,
+    completionText: {
+        fontSize: 18,
+        color: '#333333',
         textAlign: 'center',
         marginBottom: 20,
-        color: '#3b5bdb',
-        fontWeight: 'bold',
-        fontFamily: 'Helvetica-Bold',
     },
-    profesor: {
-        fontSize: 16,
+    courseName: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        color: '#ECCC5F',
         textAlign: 'center',
         marginBottom: 40,
-        color: '#555',
-        fontFamily: 'Helvetica',
+    },
+    dateContainer: {
+        marginTop: 'auto',
+        textAlign: 'center',
+    },
+    dateText: {
+        fontSize: 12,
+        color: '#888888',
+        textAlign: 'center',
     },
     footer: {
-        fontSize: 12,
+        marginTop: 20,
         textAlign: 'center',
-        color: '#777',
-        position: 'absolute',
-        bottom: 50,
-        left: 0,
-        right: 0,
-        fontFamily: 'Helvetica',
+        borderTopWidth: 1,
+        borderTopColor: '#e0e0e0',
+        paddingTop: 15,
     },
-    line: {
-        marginVertical: 20,
-        borderBottom: 2,
-        borderBottomColor: '#3b5bdb',
-        width: '80%',
+    footerText: {
+        fontSize: 10,
+        color: '#999999',
+        textAlign: 'center',
+    },
+    signatureLine: {
+        width: 200,
+        height: 1,
+        backgroundColor: '#333',
         marginHorizontal: 'auto',
+        marginTop: 40,
+        marginBottom: 10,
     },
+    signatureText: {
+        fontSize: 10,
+        color: '#666',
+        textAlign: 'center',
+    },
+    profesor: {
+        fontSize: 14,
+        color: '#333333',
+        textAlign: 'center',
+        marginBottom: 20,
+    }
 });
 
 interface CertificatePDFProps {
@@ -76,26 +100,33 @@ interface CertificatePDFProps {
 export function CertificatePDF({ nombre, curso, profesor, fecha }: CertificatePDFProps) {
     return (
         <Document>
-            <Page size="A4" orientation="landscape" style={styles.page}>
-                {/* Título */}
-                <Text style={styles.title}>CERTIFICADO DE FINALIZACIÓN</Text>
-                
-                {/* Línea decorativa */}
-                <View style={styles.line} />
-                
-                {/* Contenido */}
-                <Text style={styles.subtitle}>Se certifica que</Text>
-                <Text style={styles.name}>{nombre}</Text>
-                <Text style={styles.subtitle}>ha completado satisfactoriamente el curso</Text>
-                <Text style={styles.course}>"{curso}"</Text>
-                
-                {/* Profesor (si existe) */}
-                {profesor && profesor !== 'null' && (
-                    <Text style={styles.profesor}>Impartido por: {profesor}</Text>
-                )}
-                
-                {/* Fecha */}
-                <Text style={styles.footer}>Fecha de emisión: {fecha}</Text>
+            <Page size="A4" style={styles.page}>
+                <View style={styles.borderContainer}>
+                    <Text style={styles.title}>Certificado de Finalización</Text>
+                    
+                    <Text style={styles.awardText}>Se otorga a</Text>
+                    
+                    <Text style={styles.name}>{nombre}</Text>
+                    
+                    <Text style={styles.completionText}>por completar con éxito el curso</Text>
+                    
+                    <Text style={styles.courseName}>{curso}</Text>
+                    
+                    {profesor && profesor !== 'null' && (
+                        <Text style={styles.profesor}>Profesor: {profesor}</Text>
+                    )}
+                    
+                    <View style={styles.signatureLine} />
+                    <Text style={styles.signatureText}>Firma</Text>
+                    
+                    <View style={styles.dateContainer}>
+                        <Text style={styles.dateText}>Fecha de emisión: {fecha}</Text>
+                    </View>
+                    
+                    <View style={styles.footer}>
+                        <Text style={styles.footerText}>F&A cursos - Plataforma de Educación en Línea</Text>
+                    </View>
+                </View>
             </Page>
         </Document>
     );
