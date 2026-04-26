@@ -4,32 +4,33 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiPost } from '@/lib/api';
 
-export default function LoginPage() {
+export default function RegistroPage() {
   const router = useRouter();
+  const [nombre_completo, setNombreCompleto] = useState('');
   const [correo, setCorreo] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleRegistro = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      const data = await apiPost('/auth/login', { correo, password });
+      const data = await apiPost('/auth/registro', { 
+        nombre_completo, 
+        correo, 
+        password, 
+        rol: 'USUARIO' 
+      });
 
       if (data.token) {
         localStorage.setItem('token', data.token);
-        localStorage.setItem('rol', data.usuario.rol);
-        
-        if (data.usuario.rol === 'ADMIN') {
-          router.push('/admin/dashboard');
-        } else {
-          router.push('/cliente/cursos');
-        }
+        localStorage.setItem('rol', 'USUARIO');
+        router.push('/cliente/cursos');
       } else {
-        setError(data.error || 'Credenciales incorrectas');
+        setError(data.error || 'Error al registrarse');
       }
     } catch (err) {
       setError('Error de conexión con el servidor');
@@ -40,9 +41,19 @@ export default function LoginPage() {
 
   return (
     <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px' }}>
-      <h1>Iniciar Sesión</h1>
+      <h1>Registro</h1>
       {error && <p style={{ color: 'red' }}>{error}</p>}
-      <form onSubmit={handleLogin}>
+      <form onSubmit={handleRegistro}>
+        <div>
+          <label>Nombre Completo:</label>
+          <input
+            type="text"
+            value={nombre_completo}
+            onChange={(e) => setNombreCompleto(e.target.value)}
+            style={{ width: '100%', padding: '8px', margin: '10px 0' }}
+            required
+          />
+        </div>
         <div>
           <label>Correo:</label>
           <input
@@ -64,10 +75,10 @@ export default function LoginPage() {
           />
         </div>
         <button type="submit" disabled={loading} style={{ padding: '10px 20px' }}>
-          {loading ? 'Ingresando...' : 'Ingresar'}
+          {loading ? 'Registrando...' : 'Registrarse'}
         </button>
       </form>
-      <a href="/auth/registro">¿No tienes cuenta? Regístrate</a>
+      <a href="/auth/login">¿Ya tienes cuenta? Inicia Sesión</a>
     </div>
   );
 }

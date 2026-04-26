@@ -10,5 +10,5 @@ export default function AdminPage() {
     router.push('/admin/dashboard');
   }, [router]);
 
-  return <div>Redirigiendo al dashboard...</div>;
+  return <div>Redirigiendo...</div>;
 }

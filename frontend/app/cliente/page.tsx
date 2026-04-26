@@ -10,5 +10,5 @@ export default function ClientePage() {
     router.push('/cliente/cursos');
   }, [router]);
 
-  return <div style={{ textAlign: 'center', padding: '2rem' }}>Redirigiendo a mis cursos...</div>;
+  return <div>Redirigiendo...</div>;
 }
